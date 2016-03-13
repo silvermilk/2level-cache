@@ -4,10 +4,10 @@ package cache.strategy;
  *
  * @author Nastya
  */
-public class ExpirationPolicyFactory {
+public class ExpirationStrategyFactory {
 
-    public static Strategy expirationStrategy(StrategyType type) {
-        Strategy strategy;
+    public static ExpirationStrategy expirationStrategy(StrategyType type) {
+        ExpirationStrategy strategy;
         switch (type) {
             case LRU:
                 strategy = new LRUExpirationStrategy();

@@ -1,7 +1,7 @@
 package cache.core;
 
-import cache.strategy.ExpirationPolicyFactory;
-import cache.strategy.Strategy;
+import cache.strategy.ExpirationStrategyFactory;
+import cache.strategy.ExpirationStrategy;
 import cache.strategy.StrategyType;
 
 /**
@@ -10,26 +10,26 @@ import cache.strategy.StrategyType;
  */
 public class Configuration {
 //    private StrategyType expirationStrategyType;
-    private Strategy expirationStrategy;
-    private long maxBytesMemoryLevel;
+    private ExpirationStrategy expirationStrategy;
+    private int maxEntriesMemoryLevel;
     private long maxBytesLocalDisk;
     private String pathToLocalDisk;
     
-    public Strategy getExpirationStrategy() {
+    public ExpirationStrategy getExpirationStrategy() {
         return expirationStrategy;
     }
 
     public Configuration setExpirationStrategy(StrategyType expirationStrategyType) {
-        this.expirationStrategy = ExpirationPolicyFactory.expirationStrategy(expirationStrategyType);
+        this.expirationStrategy = ExpirationStrategyFactory.expirationStrategy(expirationStrategyType);
         return this;
     }
 
-    public long getMaxBytesMemoryLevel() {
-        return maxBytesMemoryLevel;
+    public int getMaxEntriesMemoryLevel() {
+        return maxEntriesMemoryLevel;
     }
 
-    public Configuration setMaxBytesMemoryLevel(long maxBytesMemoryLevel) {
-        this.maxBytesMemoryLevel = maxBytesMemoryLevel;
+    public Configuration setMaxEntriesMemoryLevel(int maxEntriesMemoryLevel) {
+        this.maxEntriesMemoryLevel = maxEntriesMemoryLevel;
         return this;
     }
 

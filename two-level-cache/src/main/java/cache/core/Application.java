@@ -14,7 +14,7 @@ public class Application {
         Configuration config = new Configuration()
                 .setExpirationStrategy(StrategyType.LRU)
                 .setMaxBytesLocalDisk(1000000)
-                .setMaxBytesMemoryLevel(1000000)
+                .setMaxEntriesMemoryLevel(1000)
                 .setPathToLocalDisk("D:/");
                 
         Cache <String, Integer> cache = CacheFactory.createCache(config);

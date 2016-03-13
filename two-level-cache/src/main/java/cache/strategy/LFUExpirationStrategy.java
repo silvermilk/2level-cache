@@ -3,13 +3,28 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package cache.strategy;
+
+import cache.store.DiskStore;
+import cache.store.MemoryStore;
+import java.util.LinkedHashMap;
 
 /**
  *
  * @author Nastya
  */
-public class LFUExpirationStrategy implements Strategy{
-    
+public class LFUExpirationStrategy implements ExpirationStrategy {
+
+    @Override
+    public LinkedHashMap createMemoryLevelCache(int maxEntries) {
+        //"Not supported yet."
+        return null;
+    }
+
+    @Override
+    public LinkedHashMap createDiskLevelCache(DiskStore diskLevel) {
+        //"Not supported yet."
+        return null;
+    }
+
 }

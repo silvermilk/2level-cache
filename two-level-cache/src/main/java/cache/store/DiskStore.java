@@ -1,7 +1,7 @@
 package cache.store;
 
 import cache.core.DiskElementInfo;
-import cache.strategy.Strategy;
+import cache.strategy.ExpirationStrategy;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class DiskStore<K, V> {
 
-    private final Strategy expirationStrategy;
+    private final ExpirationStrategy expirationStrategy;
     private final long maxBytesLocalDisk;
     private final String pathToLocalDisk;
     private static final String FILE_NAME = "cache-storage.data";
@@ -26,7 +26,7 @@ public class DiskStore<K, V> {
     private RandomAccessFile randomAccessFile;
     private ConcurrentHashMap<K, DiskElementInfo> elementsMap = new ConcurrentHashMap();
 
-    public DiskStore(Strategy expirationStrategy, long maxBytesLocalDisk, String pathToLocalDisk) {
+    public DiskStore(ExpirationStrategy expirationStrategy, long maxBytesLocalDisk, String pathToLocalDisk) {
         this.expirationStrategy = expirationStrategy;
         this.maxBytesLocalDisk = maxBytesLocalDisk;
         this.pathToLocalDisk = pathToLocalDisk;
@@ -72,7 +72,7 @@ public class DiskStore<K, V> {
         return diskElement;
     }
 
-    public Strategy getExpirationStrategy() {
+    public ExpirationStrategy getExpirationStrategy() {
         return expirationStrategy;
     }
 

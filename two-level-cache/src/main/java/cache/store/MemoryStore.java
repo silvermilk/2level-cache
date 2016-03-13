@@ -12,7 +12,7 @@ public class MemoryStore<K, V> {
     private final ExpirationStrategy expirationStrategy;
     private final int maxEntriesMemoryLevel;
 
-    private final LinkedHashMap<K, V> memoryCache;
+    private final LinkedHashMap <K, V> memoryCache;
 
     public MemoryStore(ExpirationStrategy expirationStrategy, int maxEntriesMemoryLevel) {
         this.expirationStrategy = expirationStrategy;

@@ -3,20 +3,33 @@ package cache.core;
 import cache.api.Cache;
 import cache.store.DiskStore;
 import cache.store.MemoryStore;
+import java.io.Serializable;
 
 /**
  *
  * @author Nastya
  */
-public class TwoLevelCache<K, V> implements Cache<K, V> {
+public class TwoLevelCache<K, V extends Serializable> implements Cache<K, V> {
 
     MemoryStore<K, V> memoryStore;
     DiskStore<K, V> diskStore;
+  
+    public MemoryStore<K, V> getMemoryStore() {
+        return memoryStore;
+    }
 
-    public TwoLevelCache(MemoryStore memoryStore, DiskStore diskStore) {
+    public void setMemoryStore(MemoryStore<K, V> memoryStore) {
         this.memoryStore = memoryStore;
+    }
+
+    public DiskStore<K, V> getDiskStore() {
+        return diskStore;
+    }
+
+    public void setDiskStore(DiskStore<K, V> diskStore) {
         this.diskStore = diskStore;
     }
+    
 
     @Override
     public V get(K key) {
@@ -35,7 +48,7 @@ public class TwoLevelCache<K, V> implements Cache<K, V> {
         V cachedEntry = memoryStore.get(key);
         if (cachedEntry == null) {
             cachedEntry = diskStore.get(key);
-            if(cachedEntry != null) {
+            if (cachedEntry != null) {
                 //diskStore.remove(K key);
             }
         } else {
@@ -56,9 +69,21 @@ public class TwoLevelCache<K, V> implements Cache<K, V> {
         return cachedEntry;
     }
 
-    private  void moveDiskEntryInMemory(K key, V value) {
+    private void moveDiskEntryInMemory(K key, V value) {
         //diskStore.remove(K key);
         memoryStore.put(key, value);
+    }
+    
+    public void moveMemoryEntryToDisk(K key, V value) {
+       diskStore.put(key, value);
+    }
+    
+    public void evictEntryFromDisk(K key) {
+       diskStore.remove(key);
+    }
+    
+    public boolean isDiskStorageOverflow() {
+        return diskStore.isOverflow();
     }
 //    class CacheKeyWrapper <K> implements Cache.KeyWrapper {
 //

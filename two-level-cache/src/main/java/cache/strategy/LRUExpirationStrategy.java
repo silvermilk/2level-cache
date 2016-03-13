@@ -5,8 +5,9 @@
  */
 package cache.strategy;
 
-import cache.store.DiskStore;
-import cache.store.MemoryStore;
+import cache.core.DiskElementInfo;
+import cache.core.TwoLevelCache;
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -14,54 +15,50 @@ import java.util.Map;
  *
  * @author Nastya
  */
-public class LRUExpirationStrategy implements ExpirationStrategy {
+public class LRUExpirationStrategy <K, V extends Serializable> implements ExpirationStrategy {
 
     static final boolean ACCESS_ORDER = true;
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
 
-    DiskStore diskLevel;
+    private final TwoLevelCache <K, V> cache;
 
 //    public LRUExpirationStrategy (MemoryStore memoryLevel, DiskStore diskLevel) {
 //        this.memoryLevel = memoryLevel;
 //        this.diskLevel = diskLevel;
 //    }
-    
+    public LRUExpirationStrategy(TwoLevelCache <K, V> cache) {
+        this.cache = cache;
+    }
+
     @Override
-    public LinkedHashMap createMemoryLevelCache(final int maxEntries) {
-        return new LinkedHashMap(maxEntries, DEFAULT_LOAD_FACTOR, ACCESS_ORDER) {
+    public LinkedHashMap <K,V> createMemoryLevelCache(final int maxEntries) {
+        return new LinkedHashMap<K,V>(maxEntries, DEFAULT_LOAD_FACTOR, ACCESS_ORDER) {
             @Override
-            protected boolean removeEldestEntry(Map.Entry eldest) {
+            protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
                 if (size() > maxEntries) {
                     //move eldest entry to the second level of cache
-//                    diskLevel.put(eldest.getKey(), eldest.getValue());
-
-                    return true; 
-
+                    cache.moveMemoryEntryToDisk(eldest.getKey(), eldest.getValue());
+                    return true;
                 }
-                return false; 
+                return false;
 
             }
         };
     }
 
     @Override
+    public LinkedHashMap <K,DiskElementInfo> createDiskLevelCache() {
 
-    public LinkedHashMap createDiskLevelCache(DiskStore diskLevel) {
-        this.diskLevel = diskLevel;
-        return new LinkedHashMap(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, ACCESS_ORDER) {
+        return new LinkedHashMap<K,DiskElementInfo>(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, ACCESS_ORDER) {
             @Override
-            protected boolean removeEldestEntry(Map.Entry eldest) {
-//                if (size() > diskLevel.isOverflow()) {
-//                    //move eldest entry to the second level of cache
-//                    diskLevel.remove(eldest.getKey());
-//
-//                    return true; 
-//
-//                }
-                return false; 
+            protected boolean removeEldestEntry(Map.Entry<K,DiskElementInfo> eldest) {
+                if (cache.isDiskStorageOverflow()) {
+                    cache.evictEntryFromDisk(eldest.getKey());
+                    return true;
+                }
+                return false;
             }
         };
     }
-
 }

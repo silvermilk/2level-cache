@@ -9,18 +9,18 @@ import cache.strategy.StrategyType;
  * @author Nastya
  */
 public class Configuration {
-//    private StrategyType expirationStrategyType;
-    private ExpirationStrategy expirationStrategy;
+    private StrategyType expirationStrategyType;
+//    private ExpirationStrategy expirationStrategy;
     private int maxEntriesMemoryLevel;
     private long maxBytesLocalDisk;
     private String pathToLocalDisk;
     
-    public ExpirationStrategy getExpirationStrategy() {
-        return expirationStrategy;
+    public StrategyType getExpirationStrategyType() {
+        return expirationStrategyType;
     }
 
-    public Configuration setExpirationStrategy(StrategyType expirationStrategyType) {
-        this.expirationStrategy = ExpirationStrategyFactory.expirationStrategy(expirationStrategyType);
+    public Configuration setExpirationStrategyType(StrategyType expirationStrategyType) {
+        this.expirationStrategyType = expirationStrategyType; 
         return this;
     }
 

@@ -1,9 +1,5 @@
 package cache.core;
 
-/**
- *
- * @author Nastya
- */
 public class DiskElementInfo {
 
     private long pointer;

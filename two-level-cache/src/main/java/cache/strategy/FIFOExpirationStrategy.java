@@ -6,15 +6,18 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class LRUExpirationStrategy<K, V extends Serializable> implements ExpirationStrategy {
+/**
+ *
+ * @author anchu
+ */
+public class FIFOExpirationStrategy<K, V extends Serializable> implements ExpirationStrategy {
 
-    static final boolean ACCESS_ORDER = true;
+    static final boolean ACCESS_ORDER = false;
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+    private TwoLevelCache<K, V> cache;
 
-    private final TwoLevelCache<K, V> cache;
-
-    public LRUExpirationStrategy(TwoLevelCache<K, V> cache) {
+    public FIFOExpirationStrategy(TwoLevelCache<K, V> cache) {
         this.cache = cache;
     }
 
@@ -35,7 +38,6 @@ public class LRUExpirationStrategy<K, V extends Serializable> implements Expirat
 
     @Override
     public LinkedHashMap<K, DiskElementInfo> createDiskLevelCache() {
-
         return new LinkedHashMap<K, DiskElementInfo>(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, ACCESS_ORDER) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, DiskElementInfo> eldest) {
@@ -47,4 +49,5 @@ public class LRUExpirationStrategy<K, V extends Serializable> implements Expirat
             }
         };
     }
+
 }

@@ -15,12 +15,12 @@ public class ExpirationStrategyFactory {
             case LRU:
                 strategy = new LRUExpirationStrategy(cache);
                 break;
-//            case MRU:
-//                strategy = new MRUExpirationStrategy(cache);
-//                break;
-//            case LFU:
-//                strategy = new LFUExpirationStrategy(cache);
-//                break;   
+            case FIFO:
+                strategy = new FIFOExpirationStrategy(cache);
+                break;                
+            case MRU:
+                strategy = new MRUExpirationStrategy(cache);
+                break;
             default:
                strategy = new LRUExpirationStrategy(cache); 
                break;

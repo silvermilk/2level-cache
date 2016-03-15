@@ -5,7 +5,6 @@ import cache.strategy.ExpirationStrategy;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -13,21 +12,17 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
-/**
- *
- * @author Nastya
- */
 public class DiskStore<K, V> {
 
     private static final String FILE_NAME = "cache-storage.data";
+    private static final Logger logger = Logger.getLogger(DiskStore.class);
     private final ExpirationStrategy expirationStrategy;
     private final long maxBytesLocalDisk;
     private final String pathToLocalDisk;
     private RandomAccessFile randomAccessFile;
-    private LinkedHashMap<K, DiskElementInfo> elementsMap;
+    private final LinkedHashMap<K, DiskElementInfo> elementsMap;
     private List<DiskElementInfo> freeSpace = new ArrayList<>();
     private long storageSize;
 
@@ -39,9 +34,8 @@ public class DiskStore<K, V> {
         try {
             initialiseFile();
         } catch (Exception ex) {
-            Logger.getLogger(DiskStore.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("Cannot create disk storage file: ", ex);
         }
-
     }
 
     private void initialiseFile() throws Exception {
@@ -67,14 +61,15 @@ public class DiskStore<K, V> {
         if (elementsMap.containsKey(key)) {
             DiskElementInfo diskElementInfo = elementsMap.get(key);
             byte[] buffer = new byte[diskElementInfo.getPayloadSize()];
-
-            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
-                    ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+            try {
                 randomAccessFile.seek(diskElementInfo.getPointer());
                 randomAccessFile.readFully(buffer);
-                diskElement = (V) objectInputStream.readObject();
+                try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
+                        ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+                    diskElement = (V) objectInputStream.readObject();
+                }
             } catch (Exception ex) {
-                Logger.getLogger(DiskStore.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error("Exception while reading disk storage: ", ex);
             }
         }
         return diskElement;
@@ -100,7 +95,7 @@ public class DiskStore<K, V> {
                 elementsMap.put(key, diskElementInfo);
             }
         } catch (IOException ex) {
-            Logger.getLogger(DiskStore.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("Exception while writing disk storage: ", ex);
         }
     }
 
@@ -124,6 +119,10 @@ public class DiskStore<K, V> {
         return null;
     }
 
+    public LinkedHashMap<K, DiskElementInfo> getElementsMap() {
+        return elementsMap;
+    }
+
     public ExpirationStrategy getExpirationStrategy() {
         return expirationStrategy;
     }
@@ -135,5 +134,4 @@ public class DiskStore<K, V> {
     public String getPathToLocalDisk() {
         return pathToLocalDisk;
     }
-
 }

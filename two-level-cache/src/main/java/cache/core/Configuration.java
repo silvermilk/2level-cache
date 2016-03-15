@@ -1,26 +1,20 @@
 package cache.core;
 
-import cache.strategy.ExpirationStrategyFactory;
-import cache.strategy.ExpirationStrategy;
 import cache.strategy.StrategyType;
 
-/**
- *
- * @author Nastya
- */
 public class Configuration {
+
     private StrategyType expirationStrategyType;
-//    private ExpirationStrategy expirationStrategy;
     private int maxEntriesMemoryLevel;
     private long maxBytesLocalDisk;
     private String pathToLocalDisk;
-    
+
     public StrategyType getExpirationStrategyType() {
         return expirationStrategyType;
     }
 
     public Configuration setExpirationStrategyType(StrategyType expirationStrategyType) {
-        this.expirationStrategyType = expirationStrategyType; 
+        this.expirationStrategyType = expirationStrategyType;
         return this;
     }
 

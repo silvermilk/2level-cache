@@ -8,10 +8,6 @@ import cache.strategy.ExpirationStrategy;
 import cache.strategy.ExpirationStrategyFactory;
 import java.io.Serializable;
 
-/**
- *
- * @author Nastya
- */
 public class CacheFactory {
 
     public static <K, V extends Serializable> Cache<K, V> createCache(Configuration config) {

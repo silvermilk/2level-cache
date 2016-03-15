@@ -25,7 +25,7 @@ public class Application {
         cache.put("rewr", 454657);
         cache.put("eretrttretretytyt", 454657);
 
-        System.out.println(cache.get("rewr"));
+        System.out.println(cache.get("erett"));
 
     }
 }

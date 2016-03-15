@@ -12,12 +12,13 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 import org.apache.log4j.Logger;
 
 public class DiskStore<K, V> {
 
-    private static final String FILE_NAME = "cache-storage.data";
     private static final Logger logger = Logger.getLogger(DiskStore.class);
+    private final String fileName = UUID.randomUUID() + "_cache-storage.data";
     private final ExpirationStrategy expirationStrategy;
     private final long maxBytesLocalDisk;
     private final String pathToLocalDisk;
@@ -48,7 +49,7 @@ public class DiskStore<K, V> {
             throw new Exception("The path:" + pathToLocalDisk + " is not a directory.");
         }
 
-        File file = new File(pathToLocalDisk, FILE_NAME);
+        File file = new File(pathToLocalDisk, fileName);
         randomAccessFile = new RandomAccessFile(file, "rw");
     }
 
@@ -56,7 +57,7 @@ public class DiskStore<K, V> {
         return storageSize >= maxBytesLocalDisk;
     }
 
-    public synchronized V get(K key) {
+    public V get(K key) {
         V diskElement = null;
         if (elementsMap.containsKey(key)) {
             DiskElementInfo diskElementInfo = elementsMap.get(key);
@@ -64,13 +65,21 @@ public class DiskStore<K, V> {
             try {
                 randomAccessFile.seek(diskElementInfo.getPointer());
                 randomAccessFile.readFully(buffer);
-                try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
-                        ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
-                    diskElement = (V) objectInputStream.readObject();
-                }
-            } catch (Exception ex) {
+                diskElement = readObjectFromFile(buffer);
+            } catch (IOException ex) {
                 logger.error("Exception while reading disk storage: ", ex);
             }
+        }
+        return diskElement;
+    }
+
+    private V readObjectFromFile(byte[] buffer) {
+        V diskElement = null;
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
+                ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+            diskElement = (V) objectInputStream.readObject();
+        } catch (Exception ex) {
+            logger.error("Exception while reading disk storage: ", ex);
         }
         return diskElement;
     }
@@ -91,20 +100,20 @@ public class DiskStore<K, V> {
 
             randomAccessFile.write(bos.toByteArray());
             storageSize += payloadSize;
-            synchronized (elementsMap) {
-                elementsMap.put(key, diskElementInfo);
-            }
+            elementsMap.put(key, diskElementInfo);
         } catch (IOException ex) {
             logger.error("Exception while writing disk storage: ", ex);
         }
     }
 
-    public synchronized void remove(K key) {
+    public void remove(K key) {
         DiskElementInfo diskElementInfo = elementsMap.get(key);
-        storageSize -= diskElementInfo.getBlockSize();
-        diskElementInfo.setPayloadSize(0);
-        freeSpace.add(diskElementInfo);
-        elementsMap.remove(key);
+        if (diskElementInfo != null) {
+            storageSize -= diskElementInfo.getBlockSize();
+            diskElementInfo.setPayloadSize(0);
+            freeSpace.add(diskElementInfo);
+            elementsMap.remove(key);
+        }
     }
 
     private DiskElementInfo findfreeBlock(int bufferLength) {

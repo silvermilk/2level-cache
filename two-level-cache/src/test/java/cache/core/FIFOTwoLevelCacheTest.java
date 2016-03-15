@@ -3,7 +3,7 @@ package cache.core;
 import cache.api.CacheFactory;
 import cache.store.DiskStore;
 import cache.strategy.StrategyType;
-import java.io.Serializable;
+import cache.utils.TestEntity;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.verify;
 
-public class TwoLevelCacheTest {
+public class FIFOTwoLevelCacheTest {
 
     private Configuration config;
     private TwoLevelCache<String, TestEntity> instance;
@@ -26,16 +26,13 @@ public class TwoLevelCacheTest {
     @Before
     public void setUp() {
         config = new Configuration()
-                .setExpirationStrategyType(StrategyType.LRU)
+                .setExpirationStrategyType(StrategyType.FIFO)
                 .setMaxBytesLocalDisk(1000)
                 .setMaxEntriesMemoryLevel(2)
                 .setPathToLocalDisk(folder.getRoot().getAbsolutePath());
         instance = (TwoLevelCache<String, TestEntity>) CacheFactory.<String, TestEntity>createCache(config);
     }
 
-    /**
-     * Test of get method, of class TwoLevelCache.
-     */
     @Test
     public void shouldGetCorrectCacheValueFromMemoryLevel() {
         //GIVEN
@@ -52,9 +49,6 @@ public class TwoLevelCacheTest {
         verify(mockedDiskStore, atMost(1)).get(any(String.class));
     }
 
-    /**
-     * Test of get method, of class TwoLevelCache.
-     */
     @Test
     public void shouldGetCorrectCacheValueFromDiskLevel() {
         //GIVEN
@@ -69,16 +63,13 @@ public class TwoLevelCacheTest {
         instance.put(firstKey, firstEntity);
         instance.put(secondKey, secondEntity);
         instance.put(thirdKey, thirdEntity);
-        TestEntity result = instance.get(firstKey);
+         TestEntity result = instance.get(firstKey);
 
         //THEN
-        assertEquals(firstEntity.field, result.field);
-//        verify(instance.diskStore, atLeast(2)).get(firstKey);
+        assertEquals(firstEntity.getField(), result.getField());
+        assertNotEquals(firstEntity, result);
     }
 
-    /**
-     * Test of put method, of class TwoLevelCache.
-     */
     @Test
     public void shouldPutCorrectCacheEntryOnMemoryLevel() {
         //GIVEN
@@ -88,14 +79,13 @@ public class TwoLevelCacheTest {
 
         //WHEN
         instance.put(key, testEntity);
+        TestEntity result = instance.get(key);
 
         //THEN
+        assertEquals(testEntity, result);
         verify(mockedDiskStore, Mockito.never()).put(key, testEntity);
     }
 
-    /**
-     * Test of put method, of class TwoLevelCache.
-     */
     @Test
     public void shouldPutCorrectCacheEntryOnDiskLevel() {
         //GIVEN
@@ -115,18 +105,42 @@ public class TwoLevelCacheTest {
         //THEN
         verify(mockedDiskStore, Mockito.atLeastOnce()).put(firstKey, firstEntity);
     }
-    
-    public static class TestEntity implements Serializable {
 
-        private String field;
+    @Test
+    public void shouldRemoveEntryFromDiskLevel() {
+        //GIVEN
+        String firstKey = "firstKey";
+        TestEntity firstEntity = new TestEntity("first test value");
+        String secondKey = "secondKey";
+        TestEntity secondEntity = new TestEntity("second test value");
+        String thirdKey = "thirdKey";
+        TestEntity thirdEntity = new TestEntity("third test value");
 
-        public TestEntity(String field) {
-            this.field = field;
-        }
-
-        public String getField() {
-            return field;
-        }
+        //WHEN
+        instance.put(firstKey, firstEntity);
+        instance.put(secondKey, secondEntity);
+        instance.put(thirdKey, thirdEntity);
+        instance.remove(firstKey);
+        TestEntity result = instance.get(firstKey);
+        
+        //THEN
+        assertNull(result);
     }
 
+    @Test
+    public void shouldRemoveEntryFromMemoryLevel() {
+        //GIVEN
+        String key = "someKey";
+        TestEntity testEntity = new TestEntity("some test value");
+        instance.setDiskStore(mockedDiskStore);
+
+        //WHEN
+        instance.put(key, testEntity);
+        instance.remove(key);
+        TestEntity result = instance.get(key);
+
+        //THEN
+        assertNull(result);
+        verify(mockedDiskStore, Mockito.never()).remove(key);
+    }
 }

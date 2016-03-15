@@ -28,7 +28,7 @@ public class FIFOExpirationStrategy<K, V extends Serializable> implements Expira
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 if (size() > maxEntries) {
                     //move eldest entry to the second level of cache
-                    cache.moveMemoryEntryToDisk(eldest.getKey(), eldest.getValue());
+                    cache.getDiskStore().put(eldest.getKey(), eldest.getValue());
                     return true;
                 }
                 return false;

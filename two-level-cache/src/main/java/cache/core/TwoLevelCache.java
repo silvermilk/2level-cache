@@ -16,26 +16,32 @@ public class TwoLevelCache<K, V extends Serializable> implements Cache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) {
+    public synchronized void put(K key, V value) {
+        if(key == null) {
+            throw new IllegalArgumentException("Cache key cannot be null!");
+        }
+        if(value == null) {
+            throw new IllegalArgumentException("Cache value cannot be null!");
+        }
         //find on 2d level
         findCachedEntry(key);
         memoryStore.put(key, value);
     }
 
     @Override
-    public void remove(K key) {
+    public synchronized void remove(K key) {
         V cachedEntry = memoryStore.get(key);
         if (cachedEntry == null) {
             cachedEntry = diskStore.get(key);
             if (cachedEntry != null) {
-                //diskStore.remove(K key);
+                diskStore.remove(key);
             }
         } else {
             memoryStore.remove(key);
         }
     }
 
-    private V findCachedEntry(K key) {
+    private synchronized V findCachedEntry(K key) {
         V cachedEntry = memoryStore.get(key);
 
         if (cachedEntry == null) {
@@ -43,21 +49,17 @@ public class TwoLevelCache<K, V extends Serializable> implements Cache<K, V> {
             cachedEntry = diskStore.get(key);
             if (cachedEntry != null) {
                 moveDiskEntryInMemory(key, cachedEntry);
-            }
+            } 
         }
         return cachedEntry;
     }
 
-    private void moveDiskEntryInMemory(K key, V value) {
+    private synchronized void moveDiskEntryInMemory(K key, V value) {
         diskStore.remove(key);
         memoryStore.put(key, value);
     }
 
-    public void moveMemoryEntryToDisk(K key, V value) {
-        diskStore.put(key, value);
-    }
-
-    public void evictEntryFromDisk(K key) {
+    public synchronized void evictEntryFromDisk(K key) {
         diskStore.remove(key);
     }
 

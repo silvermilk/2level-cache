@@ -16,21 +16,15 @@ public class MemoryStore<K, V> {
     }
 
     public V get(K key) {
-        synchronized (memoryCache) {
-            return memoryCache.get(key);
-        }
+        return memoryCache.get(key);
     }
 
     public void put(K key, V value) {
-        synchronized (memoryCache) {
-            memoryCache.put(key, value);
-        }
+        memoryCache.put(key, value);
     }
 
     public void remove(K key) {
-        synchronized (memoryCache) {
-            memoryCache.remove(key);
-        }
+        memoryCache.remove(key);
     }
 
     public ExpirationStrategy getExpirationStrategy() {

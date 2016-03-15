@@ -27,13 +27,11 @@ public class MRUExpirationStrategy<K, V extends Serializable> implements Expirat
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 if (size() > maxEntries) {
-                    synchronized (this) {
-                        K firstEntryKey = keySet().iterator().next();
-                        V firstEntryValue = get(firstEntryKey);
-                        //move entry to the second level of cache
-                        cache.moveMemoryEntryToDisk(firstEntryKey, firstEntryValue);
-                        remove(firstEntryKey);
-                    }
+                    K firstEntryKey = keySet().iterator().next();
+                    V firstEntryValue = get(firstEntryKey);
+                    //move entry to the second level of cache
+                    cache.getDiskStore().put(firstEntryKey, firstEntryValue);
+                    remove(firstEntryKey);
                 }
                 return false;
             }
@@ -48,9 +46,7 @@ public class MRUExpirationStrategy<K, V extends Serializable> implements Expirat
                 K firstEntryKey = keySet().iterator().next();
                 if (cache.isDiskStorageOverflow()) {
                     cache.evictEntryFromDisk(firstEntryKey);
-                    synchronized (this) {
-                        remove(firstEntryKey);
-                    }
+                    remove(firstEntryKey);
                 }
                 return false;
             }

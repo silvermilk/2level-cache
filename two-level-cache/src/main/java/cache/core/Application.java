@@ -4,10 +4,6 @@ import cache.api.Cache;
 import cache.api.CacheFactory;
 import cache.strategy.StrategyType;
 
-/**
- *
- * @author Nastya
- */
 public class Application {
 
     public static void main(String[] args) {
@@ -16,7 +12,7 @@ public class Application {
                 .setExpirationStrategyType(StrategyType.LRU)
                 .setMaxBytesLocalDisk(1000)
                 .setMaxEntriesMemoryLevel(2)
-                .setPathToLocalDisk("D:\\");
+                .setPathToLocalDisk(System.getProperty("java.io.tmpdir"));
 
         Cache<String, Integer> cache = CacheFactory.<String, Integer>createCache(config);
         cache.put("erett", 123234);

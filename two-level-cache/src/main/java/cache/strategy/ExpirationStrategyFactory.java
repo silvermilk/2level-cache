@@ -3,10 +3,6 @@ package cache.strategy;
 import cache.core.TwoLevelCache;
 import java.io.Serializable;
 
-/**
- *
- * @author Nastya
- */
 public class ExpirationStrategyFactory {
 
     public static <K, V extends Serializable> ExpirationStrategy expirationStrategy(StrategyType type, TwoLevelCache <K, V> cache) {

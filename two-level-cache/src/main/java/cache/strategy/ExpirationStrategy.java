@@ -2,17 +2,13 @@ package cache.strategy;
 
 import cache.core.DiskElementInfo;
 import java.io.Serializable;
-import java.util.LinkedHashMap;
+import java.util.Map;
 
-/**
- *
- * @author Nastya
- */
 public interface ExpirationStrategy <K, V extends Serializable> {
 
     //expiration rule
-    public LinkedHashMap<K, V> createMemoryLevelCache(int maxEntries);
+    public Map<K, V> createMemoryLevelCache(int maxEntries);
 
     //eviction rule
-    public LinkedHashMap<K, DiskElementInfo> createDiskLevelCache();
+    public Map<K, DiskElementInfo> createDiskLevelCache();
 }

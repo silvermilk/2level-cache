@@ -1,13 +1,13 @@
 package cache.store;
 
 import cache.strategy.ExpirationStrategy;
-import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MemoryStore<K, V> {
 
     private final ExpirationStrategy expirationStrategy;
     private final int maxEntriesMemoryLevel;
-    private final LinkedHashMap<K, V> memoryCache;
+    private final Map<K, V> memoryCache;
 
     public MemoryStore(ExpirationStrategy expirationStrategy, int maxEntriesMemoryLevel) {
         this.expirationStrategy = expirationStrategy;

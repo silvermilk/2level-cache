@@ -1,11 +1,8 @@
 package cache.core;
 
 public class DiskElementInfo {
-
     private long pointer;
-
     private int payloadSize;
-
     private int blockSize;
 
     public int getBlockSize() {
@@ -31,5 +28,4 @@ public class DiskElementInfo {
     public void setPayloadSize(int payloadSize) {
         this.payloadSize = payloadSize;
     }
-
 }

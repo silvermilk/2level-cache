@@ -20,6 +20,13 @@ public class FIFOTwoLevelCacheTest {
     private TwoLevelCache<String, TestEntity> instance;
     private DiskStore<String, TestEntity> mockedDiskStore = Mockito.mock(DiskStore.class);
 
+    private String firstKey = "firstKey";
+    private TestEntity firstEntity = new TestEntity("first test value");
+    private String secondKey = "secondKey";
+    private TestEntity secondEntity = new TestEntity("second test value");
+    private String thirdKey = "thirdKey";
+    private TestEntity thirdEntity = new TestEntity("third test value");
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -36,34 +43,28 @@ public class FIFOTwoLevelCacheTest {
     @Test
     public void shouldGetCorrectCacheValueFromMemoryLevel() {
         //GIVEN
-        String key = "someKey";
-        TestEntity testEntity = new TestEntity("some test value");
         instance.setDiskStore(mockedDiskStore);
 
         //WHEN
-        instance.put(key, testEntity);
-        TestEntity result = instance.get(key);
+        instance.put(firstKey, firstEntity);
+        TestEntity result = instance.get(firstKey);
 
         //THEN
-        assertEquals(testEntity, result);
+        assertEquals(firstEntity, result);
         verify(mockedDiskStore, atMost(1)).get(any(String.class));
     }
 
     @Test
     public void shouldGetCorrectCacheValueFromDiskLevel() {
         //GIVEN
-        String firstKey = "firstKey";
-        TestEntity firstEntity = new TestEntity("first test value");
-        String secondKey = "secondKey";
-        TestEntity secondEntity = new TestEntity("second test value");
-        String thirdKey = "thirdKey";
-        TestEntity thirdEntity = new TestEntity("third test value");
 
         //WHEN
         instance.put(firstKey, firstEntity);
         instance.put(secondKey, secondEntity);
+        //make second item the eldest.This should not affect the order
+        instance.get(firstKey);
         instance.put(thirdKey, thirdEntity);
-         TestEntity result = instance.get(firstKey);
+        TestEntity result = instance.get(firstKey);
 
         //THEN
         assertEquals(firstEntity.getField(), result.getField());
@@ -73,33 +74,27 @@ public class FIFOTwoLevelCacheTest {
     @Test
     public void shouldPutCorrectCacheEntryOnMemoryLevel() {
         //GIVEN
-        String key = "someKey";
-        TestEntity testEntity = new TestEntity("some test value");
         instance.setDiskStore(mockedDiskStore);
 
         //WHEN
-        instance.put(key, testEntity);
-        TestEntity result = instance.get(key);
+        instance.put(firstKey, firstEntity);
+        TestEntity result = instance.get(firstKey);
 
         //THEN
-        assertEquals(testEntity, result);
-        verify(mockedDiskStore, Mockito.never()).put(key, testEntity);
+        assertEquals(firstEntity, result);
+        verify(mockedDiskStore, Mockito.never()).put(firstKey, firstEntity);
     }
 
     @Test
     public void shouldPutCorrectCacheEntryOnDiskLevel() {
         //GIVEN
-        String firstKey = "firstKey";
-        TestEntity firstEntity = new TestEntity("first test value");
-        String secondKey = "secondKey";
-        TestEntity secondEntity = new TestEntity("second test value");
-        String thirdKey = "thirdKey";
-        TestEntity thirdEntity = new TestEntity("third test value");
         instance.setDiskStore(mockedDiskStore);
 
         //WHEN
         instance.put(firstKey, firstEntity);
         instance.put(secondKey, secondEntity);
+        //make second item the eldest.This should not affect the order
+        instance.get(firstKey);
         instance.put(thirdKey, thirdEntity);
 
         //THEN
@@ -109,20 +104,13 @@ public class FIFOTwoLevelCacheTest {
     @Test
     public void shouldRemoveEntryFromDiskLevel() {
         //GIVEN
-        String firstKey = "firstKey";
-        TestEntity firstEntity = new TestEntity("first test value");
-        String secondKey = "secondKey";
-        TestEntity secondEntity = new TestEntity("second test value");
-        String thirdKey = "thirdKey";
-        TestEntity thirdEntity = new TestEntity("third test value");
-
         //WHEN
         instance.put(firstKey, firstEntity);
         instance.put(secondKey, secondEntity);
         instance.put(thirdKey, thirdEntity);
         instance.remove(firstKey);
         TestEntity result = instance.get(firstKey);
-        
+
         //THEN
         assertNull(result);
     }
@@ -130,17 +118,15 @@ public class FIFOTwoLevelCacheTest {
     @Test
     public void shouldRemoveEntryFromMemoryLevel() {
         //GIVEN
-        String key = "someKey";
-        TestEntity testEntity = new TestEntity("some test value");
         instance.setDiskStore(mockedDiskStore);
 
         //WHEN
-        instance.put(key, testEntity);
-        instance.remove(key);
-        TestEntity result = instance.get(key);
+        instance.put(firstKey, firstEntity);
+        instance.remove(firstKey);
+        TestEntity result = instance.get(firstKey);
 
         //THEN
         assertNull(result);
-        verify(mockedDiskStore, Mockito.never()).remove(key);
+        verify(mockedDiskStore, Mockito.never()).remove(firstKey);
     }
 }

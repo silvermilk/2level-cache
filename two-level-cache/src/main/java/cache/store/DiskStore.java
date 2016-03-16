@@ -10,20 +10,22 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.apache.log4j.Logger;
 
 public class DiskStore<K, V> {
 
-    private static final Logger logger = Logger.getLogger(DiskStore.class);
+    private static final Logger LOGGER = Logger.getLogger(DiskStore.class);
+
     private final String fileName = UUID.randomUUID() + "_cache-storage.data";
     private final ExpirationStrategy expirationStrategy;
     private final long maxBytesLocalDisk;
     private final String pathToLocalDisk;
+    private final Map<K, DiskElementInfo> elementsMap;
+
     private RandomAccessFile randomAccessFile;
-    private final LinkedHashMap<K, DiskElementInfo> elementsMap;
     private List<DiskElementInfo> freeSpace = new ArrayList<>();
     private long storageSize;
 
@@ -35,12 +37,12 @@ public class DiskStore<K, V> {
         try {
             initialiseFile();
         } catch (Exception ex) {
-            logger.error("Cannot create disk storage file: ", ex);
+            LOGGER.error("Cannot create disk storage file: ", ex);
+            throw new RuntimeException(ex.getMessage());
         }
     }
 
     private void initialiseFile() throws Exception {
-
         File dir = new File(pathToLocalDisk);
 
         if (!dir.exists()) {
@@ -65,21 +67,21 @@ public class DiskStore<K, V> {
             try {
                 randomAccessFile.seek(diskElementInfo.getPointer());
                 randomAccessFile.readFully(buffer);
-                diskElement = readObjectFromFile(buffer);
+                diskElement = readObjectFromBuffer(buffer);
             } catch (IOException ex) {
-                logger.error("Exception while reading disk storage: ", ex);
+                LOGGER.error("Exception while reading disk storage: ", ex);
             }
         }
         return diskElement;
     }
 
-    private V readObjectFromFile(byte[] buffer) {
+    private V readObjectFromBuffer(byte[] buffer) {
         V diskElement = null;
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
             diskElement = (V) objectInputStream.readObject();
         } catch (Exception ex) {
-            logger.error("Exception while reading disk storage: ", ex);
+            LOGGER.error("Exception while reading disk storage: ", ex);
         }
         return diskElement;
     }
@@ -87,22 +89,19 @@ public class DiskStore<K, V> {
     public void put(K key, V value) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(bos)) {
-
             objectOutputStream.writeObject(value);
-            int payloadSize = bos.toByteArray().length;
+            int payloadSize = bos.toByteArray().length;            
             DiskElementInfo diskElementInfo = findfreeBlock(payloadSize);
+            
             if (diskElementInfo == null) {
-                diskElementInfo = new DiskElementInfo();
-                diskElementInfo.setBlockSize(payloadSize);
-                diskElementInfo.setPayloadSize(payloadSize);
-                diskElementInfo.setPointer(randomAccessFile.getFilePointer());
+                diskElementInfo = createNewDiskElement(payloadSize);
             }
 
             randomAccessFile.write(bos.toByteArray());
             storageSize += payloadSize;
             elementsMap.put(key, diskElementInfo);
         } catch (IOException ex) {
-            logger.error("Exception while writing disk storage: ", ex);
+            LOGGER.error("Exception while writing disk storage: ", ex);
         }
     }
 
@@ -114,6 +113,14 @@ public class DiskStore<K, V> {
             freeSpace.add(diskElementInfo);
             elementsMap.remove(key);
         }
+    }
+
+    private DiskElementInfo createNewDiskElement(int payloadSize) throws IOException {
+        DiskElementInfo diskElementInfo = new DiskElementInfo();
+        diskElementInfo.setBlockSize(payloadSize);
+        diskElementInfo.setPayloadSize(payloadSize);
+        diskElementInfo.setPointer(randomAccessFile.getFilePointer());
+        return diskElementInfo;
     }
 
     private DiskElementInfo findfreeBlock(int bufferLength) {
@@ -128,7 +135,7 @@ public class DiskStore<K, V> {
         return null;
     }
 
-    public LinkedHashMap<K, DiskElementInfo> getElementsMap() {
+    public Map<K, DiskElementInfo> getElementsMap() {
         return elementsMap;
     }
 

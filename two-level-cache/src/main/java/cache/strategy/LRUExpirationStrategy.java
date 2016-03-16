@@ -6,11 +6,15 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Defines functions to determine when cache entries will expire based on
+ * access operations.
+ */
 public class LRUExpirationStrategy<K, V extends Serializable> implements ExpirationStrategy {
 
-    static final boolean ACCESS_ORDER = true;
-    static final float DEFAULT_LOAD_FACTOR = 0.75f;
-    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+    private static final boolean ACCESS_ORDER = true;
+    private static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    private static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
 
     private final TwoLevelCache<K, V> cache;
 

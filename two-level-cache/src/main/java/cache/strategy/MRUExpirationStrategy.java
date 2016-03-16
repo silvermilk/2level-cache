@@ -5,11 +5,16 @@ import cache.core.TwoLevelCache;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 
+/**
+ * Defines functions to determine when cache entries will expire based on
+ * the access operations (the most recently used items expire first).
+ */
 public class MRUExpirationStrategy<K, V extends Serializable> implements ExpirationStrategy {
 
-    static final boolean ACCESS_ORDER = true;
-    static final float DEFAULT_LOAD_FACTOR = 0.75f;
-    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+    private static final boolean ACCESS_ORDER = true;
+    private static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    private static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+    
     private final TwoLevelCache<K, V> cache;
 
     public MRUExpirationStrategy(TwoLevelCache<K, V> cache) {

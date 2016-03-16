@@ -7,11 +7,11 @@ import java.io.Serializable;
 
 public class TwoLevelCache<K, V extends Serializable> implements Cache<K, V> {
 
-    MemoryStore<K, V> memoryStore;
-    DiskStore<K, V> diskStore;
+    private MemoryStore<K, V> memoryStore;
+    private DiskStore<K, V> diskStore;
 
     @Override
-    public V get(K key) {
+    public synchronized V get(K key) {
         return findCachedEntry(key);
     }
 
@@ -40,8 +40,16 @@ public class TwoLevelCache<K, V extends Serializable> implements Cache<K, V> {
             memoryStore.remove(key);
         }
     }
+    
+    public void evictEntryFromDisk(K key) {
+        diskStore.remove(key);
+    }
 
-    private synchronized V findCachedEntry(K key) {
+    public boolean isDiskStorageOverflow() {
+        return diskStore.isOverflow();
+    }    
+
+    private V findCachedEntry(K key) {
         V cachedEntry = memoryStore.get(key);
 
         if (cachedEntry == null) {
@@ -54,17 +62,9 @@ public class TwoLevelCache<K, V extends Serializable> implements Cache<K, V> {
         return cachedEntry;
     }
 
-    private synchronized void moveDiskEntryInMemory(K key, V value) {
+    private void moveDiskEntryInMemory(K key, V value) {
         diskStore.remove(key);
         memoryStore.put(key, value);
-    }
-
-    public synchronized void evictEntryFromDisk(K key) {
-        diskStore.remove(key);
-    }
-
-    public boolean isDiskStorageOverflow() {
-        return diskStore.isOverflow();
     }
 
     public MemoryStore<K, V> getMemoryStore() {

@@ -103,7 +103,6 @@ public class MRUTwoLevelCacheTest {
         instance.get(firstKey);
         instance.put(thirdKey, thirdEntity);
 
-
         //THEN
         verify(mockedDiskStore, Mockito.atLeastOnce()).put(thirdKey, thirdEntity);
     }
